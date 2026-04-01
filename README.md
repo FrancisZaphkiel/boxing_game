@@ -14,7 +14,7 @@ Dentro del juego el usuario debe lanzar golpes alternados para realizar combos m
 El juego no fue desarrollado a tiempo por razones de reposo debido a enfermedad :c
 
 ## Razón por implementar electron
-Se implemento electron para poder ejecutar el juego de manera local sin necesidad de un servidor web. Esto debido a que el navegador no permitia el uso de la camara web de mi equipo (razón aún desconocida) en conjunto con el modelo de machine learning. Es solo otra forma de empaquetar una aplicacion web en un ejecutable. Aún es posible jugarlo exponiendo el juego a algún puerto local.
+Se implemento electron para poder ejecutar el juego de manera local sin necesidad de un servidor web. Esto debido a que el navegador no permitia el uso de la camara web de mi equipo (razón aún desconocida) en conjunto con el modelo de machine learning. Es solo otra forma de empaquetar una aplicacion web en un ejecutable. Aún es posible jugarlo exponiendo el juego a algún puerto local (python -m http.server 8000).
 
 ## ¿Cómo ejecutar el juego?
 pre-requisitos: Tener instalado node.js y npm.
