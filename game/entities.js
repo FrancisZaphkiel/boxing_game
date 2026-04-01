@@ -1,35 +1,41 @@
 class Fighter {
-  constructor(x, y, color, isPlayer) {
+  constructor(x, y, color, isPlayer, sprites) {
     this.x = x;
     this.y = y;
-    this.originalX = x;
     this.color = color;
     this.isPlayer = isPlayer;
+    this.sprites = sprites;
 
     this.maxHealth = 10;
     this.health = 10;
-
+    
     this.maxGuard = 3;
     this.guard = 3;
 
-    this.state = "reposo";
+    this.state = "reposo"; 
 
     this.cooldownLeft = 0;
     this.cooldownRight = 0;
     this.COOLDOWN_TIME = 800;
-
+    
     this.comboCount = 0;
     this.lastAttackTime = 0;
     this.COMBO_WINDOW = 1500;
     this.MAX_COMBO = 5;
 
     this.hitTimer = 0;
-
+    
     this.vulnerableTimer = 0;
     this.VULNERABLE_DURATION = 3000;
-
+    
     this.idleTime = 0;
     this.GUARD_RECOVERY_TIME = 2000;
+
+    // Controles de Animación de Sprites
+    this.currentFrame = 0;
+    this.animTimer = 0;
+    this.ANIM_SPEED = 150; // milisegundos por fotograma
+    this.lastState = "reposo";
   }
 
   update(dt) {
@@ -44,15 +50,18 @@ class Fighter {
     if (this.hitTimer > 0) {
       this.hitTimer -= dt;
       if (this.hitTimer <= 0 && this.state !== "vulnerable") {
-        this.state = "reposo";
+        this.state = "reposo"; 
       }
     }
 
     if (this.state === "vulnerable") {
       this.vulnerableTimer -= dt;
       if (this.vulnerableTimer <= 0) {
-        this.state = "reposo";
-        this.guard = this.maxGuard;
+        // Solo recupera el estado si la salud es mayor a 0
+        if (this.health > 0) {
+           this.state = "reposo";
+           this.guard = this.maxGuard;
+        }
       }
     }
 
@@ -62,11 +71,48 @@ class Fighter {
         if (this.guard < this.maxGuard) {
           this.guard++;
         }
-        this.idleTime = 0;
+        this.idleTime = 0; 
       }
     } else {
       this.idleTime = 0;
     }
+
+    this.updateAnimation(dt);
+  }
+
+  updateAnimation(dt) {
+    if (this.state !== this.lastState) {
+        this.currentFrame = 0; // Reinicia el fotograma en cambios de estado
+        this.animTimer = 0;
+        this.lastState = this.state;
+    }
+
+    this.animTimer += dt;
+    if (this.animTimer >= this.ANIM_SPEED) {
+        this.animTimer = 0;
+        let config = this.getAnimConfig(this.state);
+        
+        if (config.loop) {
+            this.currentFrame = (this.currentFrame + 1) % config.frames;
+        } else {
+            // Detiene la animación en el último fotograma
+            if (this.currentFrame < config.frames - 1) {
+                this.currentFrame++;
+            }
+        }
+    }
+  }
+
+  getAnimConfig(state) {
+      switch(state) {
+          case "reposo": return { img: this.sprites.normal, frames: 2, loop: true };
+          case "bloqueo": return { img: this.sprites.bloqueo, frames: 2, loop: false };
+          case "vulnerable": return { img: this.sprites.noqueado, frames: 2, loop: false };
+          case "hit": return { img: this.sprites.normal, frames: 2, loop: true };
+          case "izquierda": return { img: this.sprites.golpe_izquierdo, frames: 4, loop: false };
+          case "derecha": return { img: this.sprites.golpe_derecho, frames: 4, loop: false };
+          default: return { img: this.sprites.normal, frames: 2, loop: true };
+      }
   }
 
   attackLeft(now) {
@@ -78,8 +124,9 @@ class Fighter {
     this.comboCount++;
     this.lastAttackTime = now;
     this.cooldownLeft = this.COOLDOWN_TIME;
-
-    setTimeout(() => { if (this.state === "izquierda") this.state = "reposo"; }, 400);
+    
+    // Auto restauración de estado esperando que la animación finalice
+    setTimeout(() => { if (this.state === "izquierda") this.state = "reposo"; }, 600);
     return true;
   }
 
@@ -93,7 +140,7 @@ class Fighter {
     this.lastAttackTime = now;
     this.cooldownRight = this.COOLDOWN_TIME;
 
-    setTimeout(() => { if (this.state === "derecha") this.state = "reposo"; }, 400);
+    setTimeout(() => { if (this.state === "derecha") this.state = "reposo"; }, 600);
     return true;
   }
 
@@ -109,11 +156,12 @@ class Fighter {
 
   takeDamage(amount) {
     this.health -= amount;
-    if (this.health < 0) this.health = 0;
-    this.hitTimer = 300;
-
-    if (this.state !== "vulnerable") {
-      this.state = "hit";
+    if (this.health <= 0) {
+        this.health = 0;
+        this.startVulnerable();
+    } else {
+        this.hitTimer = 300; 
+        if (this.state !== "vulnerable") this.state = "hit";
     }
   }
 
@@ -135,97 +183,56 @@ class Fighter {
   }
 
   draw() {
-    push();
+    // Renderización exclusiva de Inteligencia Artificial (Primera persona)
+    if (this.isPlayer) return;
 
-    let drawX = this.x;
+    push();
+    
+    let drawX = 0;
+    let drawY = 0;
+
     if (this.hitTimer > 0) {
       drawX += random(-5, 5);
+      tint(255, 100, 100);
     }
 
-    translate(drawX, this.y);
+    let config = this.getAnimConfig(this.state);
+    let img = config.img;
+    let sW = 615;
+    let sH = 695;
 
-    let c = this.color;
-    if (this.state === "vulnerable") c = color(200, 200, 0);
-    if (this.hitTimer > 0) c = color(255, 0, 0);
-
-    fill(c);
-    noStroke();
-
-    rectMode(CENTER);
-    rect(0, 0, 60, 150);
-
-    ellipse(0, -90, 50, 50);
-
-    fill(200);
-    let lx = -35;
-    let ly = -20;
-    let rx = 35;
-    let ry = -20;
-
-    let dir = this.isPlayer ? 1 : -1;
-
-    if (this.state === "izquierda") {
-      lx += 50 * dir;
-    } else if (this.state === "derecha") {
-      rx += 50 * dir;
-    } else if (this.state === "bloqueo") {
-      lx += 20 * dir;
-      rx -= 20 * dir;
-      ly -= 40;
-      ry -= 40;
-    }
-
-    ellipse(lx, ly, 30, 30);
-    ellipse(rx, ry, 30, 30);
-
-    this.drawBars();
-
-    if (this.isPlayer) {
-      fill(0, 255, 255);
-      if (this.cooldownLeft > 0) {
-        let w = map(this.cooldownLeft, this.COOLDOWN_TIME, 0, 30, 0);
-        rect(-20, 90, w, 5);
-      }
-      if (this.cooldownRight > 0) {
-        let w = map(this.cooldownRight, this.COOLDOWN_TIME, 0, 30, 0);
-        rect(20, 90, w, 5);
-      }
+    if (img) {
+       // Obtiene coordenada 'x' dinámicamente según el fotograma actual
+       let sx = this.currentFrame * sW;
+       image(img, drawX, drawY, sW, sH, sx, 0, sW, sH);
+    } else {
+       fill(255, 0, 0);
+       rect(100, 100, 100, 100);
     }
 
     if (this.state === "vulnerable") {
-      fill(255);
-      textAlign(CENTER);
-      textSize(16);
-      text("BREAK!", 0, -140);
+      let starImg = this.sprites.estrellas;
+      if (starImg) {
+        let sW_star = 192;
+        let sH_star = 128;
+        // Mantiene iteración rítmica del fotograma usando tiempo global (millis) para evitar acumuladores visuales
+        let starFrame = floor(millis() / 100) % 9;
+        image(starImg, sW/2 - sW_star/2, 50, sW_star, sH_star, starFrame * sW_star, 0, sW_star, sH_star);
+      }
+      
+      if (this.health > 0) {
+        fill(255, 255, 0);
+        textAlign(CENTER);
+        textSize(32);
+        text("¡GUARDIA ROTA!", sW/2, sH/2 - 100);
+      } else {
+        fill(255, 0, 0);
+        textAlign(CENTER);
+        textSize(48);
+        text("K O ! !", sW/2, sH/2 - 100);
+      }
     }
-
-    if (this.comboCount > 1) {
-      fill(0, 255, 0);
-      textAlign(CENTER);
-      textSize(16);
-      text(this.comboCount + " HITS", 0, -160);
-    }
-
+    
     pop();
-  }
-
-  drawBars() {
-    let barWidth = 80;
-    let barHeight = 10;
-    let yOff = -130;
-
-    fill(100, 0, 0);
-    rect(0, yOff, barWidth, barHeight);
-
-    fill(0, 255, 0);
-    let hw = map(this.health, 0, this.maxHealth, 0, barWidth);
-    rect(-barWidth / 2 + hw / 2, yOff, hw, barHeight);
-
-    fill(0, 0, 100);
-    rect(0, yOff + 15, barWidth, 6);
-
-    fill(0, 255, 255);
-    let gw = map(this.guard, 0, this.maxGuard, 0, barWidth);
-    rect(-barWidth / 2 + gw / 2, yOff + 15, gw, 6);
   }
 }

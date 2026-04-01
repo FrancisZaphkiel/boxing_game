@@ -64,7 +64,7 @@ class CombatSystem {
       if (this.player.state === "izquierda" || this.player.state === "derecha") {
         if (r < 0.8 && this.npc.guard > 0) {
           this.npc.block();
-          this.npcAttackTimer = this.npcActionCooldown;
+          this.npcAttackTimer = random(4000, 6000); // 4 to 6 secs blocking
           return;
         }
       }

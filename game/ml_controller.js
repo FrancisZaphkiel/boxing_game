@@ -1,29 +1,25 @@
-// ML Controller using ml5.js and Teachable Machine
-const MODEL_URL = "https://teachablemachine.withgoogle.com/models/8GvFdomxZ/";
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/8737QlB7H/";
 
 let classifier;
 let video;
-let currentLabel = "reposo"; // default label
+let currentLabel = "reposo"; 
 let isModelLoaded = false;
 
-// We will store confidence specifically for high threshold
+// Umbral de certeza matemática del modelo de Teachable Machine para evitar falsos positivos
 let highConfidenceLabel = "reposo";
-const CONFIDENCE_THRESHOLD = 0.85;
+const CONFIDENCE_THRESHOLD = 0.70;
 
 function setupML() {
-  // Create video capture
   video = createCapture(VIDEO);
   video.size(160, 120);
-  video.hide(); // Hide the default HTML element, we'll draw it manually if needed
+  video.hide(); 
   
-  // Or attach it to the div we created
   let container = select('#video-container');
   if (container) {
       video.parent(container);
       video.show();
   }
 
-  // Load the image classification model
   classifier = ml5.imageClassifier(MODEL_URL + 'model.json', video, modelLoaded);
 }
 
@@ -43,29 +39,21 @@ function gotResult(error, results) {
     return;
   }
   
-  // The results are in an array ordered by confidence.
   if (results && results[0]) {
     currentLabel = results[0].label;
     
-    // Only update highConfidenceLabel if it meets threshold
+    // Solo filtra predicciones estables superiores al percentil definido
     if (results[0].confidence > CONFIDENCE_THRESHOLD) {
       highConfidenceLabel = currentLabel.toLowerCase();
     } else {
-      // If we aren't confident, we default to reposo (idle)
-      // or maintain previous frame depending on design, let's default to reposo
       highConfidenceLabel = "reposo"; 
     }
   }
   
-  // Classify again!
   classifyVideo();
 }
 
-// Function to get the current confident processed input
-// returns "izquierda", "derecha", "reposo", "bloqueo"
+// Retorna el label de alta confianza actual ("izquierda", "derecha", "reposo", "bloqueo")
 function getCurrentInput() {
   return highConfidenceLabel;
 }
-
-// Ensure the label corresponds to expected names
-// Note: Replace with exactly how you named them in TM: "izquierda", "derecha", "reposo", "bloqueo"
