@@ -1,4 +1,4 @@
-const MODEL_URL = "https://teachablemachine.withgoogle.com/models/8737QlB7H/";
+const MODEL_URL = "assets/model/";
 
 let classifier;
 let video;

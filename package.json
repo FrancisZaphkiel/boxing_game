@@ -1,0 +1,12 @@
+{
+  "name": "boxing-game-first-person",
+  "version": "1.0.0",
+  "description": "Juego de boxeo en primera persona con p5.js y Teachable Machine",
+  "main": "main_electron.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^29.0.0"
+  }
+}
