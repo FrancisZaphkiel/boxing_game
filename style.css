@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #111;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+#game-container {
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#video-container {
+  display: block;
+  border-radius: 4px;
+}

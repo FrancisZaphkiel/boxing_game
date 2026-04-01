@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight Game - p5.js & ml5.js</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="game-container"></div>
+
+    <div id="video-container"
+        style="position: absolute; top: 10px; right: 10px; width: 160px; height: 120px; border: 2px solid white; z-index: 10;">
+    </div>
+
+    <script src="game/ml_controller.js"></script>
+    <script src="game/entities.js"></script>
+    <script src="game/combat_system.js"></script>
+    <script src="game/main.js"></script>
+</body>
+
+</html>
